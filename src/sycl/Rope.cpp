@@ -330,7 +330,10 @@ void rotary_embedding_2D_kernel_impl(
   int64_t max_wg_size = dpcppMaxWorkGroupSize(dev_id);
   int64_t max_group_num = dpcppMaxWorkItemsPerTile(dev_id) / max_wg_size;
   int64_t num_groups = num_tokens;
-  int64_t group_size = std::min(max_wg_size, query.size(-1));
+
+  static constexpr int sg_size = 16;
+  int64_t actual_work = num_kv_heads * (rot_dim / 2);  // smallest of Q/K
+  int64_t group_size = divup(std::min((int64_t)512, actual_work), sg_size) * sg_size;
 
   SYCL_DISPATCH_FLOATING_TYPES(
       at::ScalarType::Half, at::ScalarType::BFloat16, query.scalar_type(), "rotary_embedding_2D_kernel_impl", [=]() {
