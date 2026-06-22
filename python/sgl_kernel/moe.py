@@ -447,6 +447,13 @@ def fused_experts(
         hidden_dims,
         TopK,
     )
+
+    # gpf: print avg_m, max_m, min_m
+    avg_m = (M * TopK) // E
+    max_m = expert_offsets.max().item()
+    min_m = expert_offsets.min().item()
+    print(f"avg_m: {avg_m}, max_m: {max_m}, min_m: {min_m}")
+
     input_A_shuffle = torch.empty(
         (num_tokens * TopK, K), device=hidden_states.device, dtype=hidden_states.dtype
     )
